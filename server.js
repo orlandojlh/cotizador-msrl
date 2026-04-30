@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
+const API_KEY = process.env.DEEPSEEK_API_KEY;
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -31,28 +31,44 @@ const server = http.createServer((req, res) => {
         const payload = JSON.parse(body);
         const { system, text, images } = payload;
 
-        const parts = [];
-        parts.push({ text: system + '\n\nTRABAJO:\n' + (text || 'Ver imágenes adjuntas.') });
+        // DeepSeek soporta visión con imágenes
+        const userContent = [];
+
+        if (text) {
+          userContent.push({ type: 'text', text: text });
+        }
 
         if (images && images.length > 0) {
           images.forEach(img => {
-            parts.push({ inline_data: { mime_type: img.mimeType, data: img.data } });
+            userContent.push({
+              type: 'image_url',
+              image_url: { url: 'data:' + img.mimeType + ';base64,' + img.data }
+            });
           });
+          if (!text) userContent.push({ type: 'text', text: 'Analiza las imágenes y genera la cotización.' });
         }
 
-        const geminiPayload = {
-          contents: [{ parts }],
-          generationConfig: { maxOutputTokens: 2000, temperature: 0.2 }
+        const deepseekPayload = {
+          model: 'deepseek-chat',
+          max_tokens: 2000,
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: userContent.length === 1 && userContent[0].type === 'text'
+                ? userContent[0].text
+                : userContent
+            }
+          ]
         };
 
-        const postData = JSON.stringify(geminiPayload);
+        const postData = JSON.stringify(deepseekPayload);
 
         const options = {
-          hostname: 'generativelanguage.googleapis.com',
-          path: '/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY,
+          hostname: 'api.deepseek.com',
+          path: '/chat/completions',
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + API_KEY,
             'Content-Length': Buffer.byteLength(postData)
           }
         };
@@ -61,11 +77,11 @@ const server = http.createServer((req, res) => {
           let data = '';
           apiRes.on('data', chunk => data += chunk);
           apiRes.on('end', () => {
-            console.log('Status:', apiRes.statusCode);
-            console.log('Response:', data.substring(0, 300));
+            console.log('DeepSeek status:', apiRes.statusCode);
+            console.log('Response:', data.substring(0, 200));
             try {
               const parsed = JSON.parse(data);
-              const txt = parsed.candidates?.[0]?.content?.parts?.[0]?.text
+              const txt = parsed.choices?.[0]?.message?.content
                 || parsed.error?.message
                 || JSON.stringify(parsed).substring(0, 300);
               res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -80,7 +96,7 @@ const server = http.createServer((req, res) => {
         apiReq.on('error', err => {
           console.error('Error:', err.message);
           res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error red: ' + err.message }] }));
+          res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error: ' + err.message }] }));
         });
 
         apiReq.write(postData);
@@ -99,5 +115,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log('Cotizador MSR&L (Gemini 2.0) puerto ' + PORT);
+  console.log('Cotizador MSR&L (DeepSeek) puerto ' + PORT);
 });
