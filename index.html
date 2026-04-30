@@ -3,14 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Cotizador — MSR&L</title>
+<title>Cotizador MSR&L</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#0b0e14;--surf:#111520;--surf2:#161b27;--bord:#1f2737;
-  --acc:#00d4ff;--acc2:#00ff9d;--txt:#dde3f0;--mut:#4a5568;--mut2:#64748b;--err:#ff4757;
-  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--disp:'Syne',sans-serif;
-}
+:root{--bg:#0b0e14;--surf:#111520;--surf2:#161b27;--bord:#1f2737;--acc:#00d4ff;--acc2:#00ff9d;--txt:#dde3f0;--mut:#4a5568;--mut2:#64748b;--err:#ff4757;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--disp:'Syne',sans-serif;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--sans);background:var(--bg);color:var(--txt);min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.025) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0;}
@@ -48,8 +44,6 @@ textarea::placeholder{color:var(--mut);font-style:italic;font-size:13px;}
 .btn-go:hover{background:#22e0ff;}
 .btn-go:active{transform:scale(.97);}
 .btn-go:disabled{opacity:.4;cursor:not-allowed;transform:none;}
-
-/* Zona de imágenes */
 .img-zone{margin-bottom:14px;}
 .img-label{font-family:var(--mono);font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
 .img-label span{color:var(--acc2);}
@@ -61,16 +55,13 @@ textarea::placeholder{color:var(--mut);font-style:italic;font-size:13px;}
 .img-previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
 .img-thumb{position:relative;width:72px;height:72px;border-radius:4px;overflow:hidden;border:1px solid var(--bord);}
 .img-thumb img{width:100%;height:100%;object-fit:cover;}
-.img-thumb .del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
-.img-count{font-family:var(--mono);font-size:10px;color:var(--acc2);margin-top:6px;}
-
+.img-thumb .del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .loading{display:none;align-items:center;gap:12px;padding:16px;border:1px solid var(--bord);border-radius:8px;background:var(--surf);margin-bottom:14px;}
 .loading.on{display:flex;}
 .spinner{width:18px;height:18px;border:2px solid var(--bord);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .ltxt{font-family:var(--mono);font-size:11px;color:var(--mut2);}
 .lsub{font-size:10px;color:var(--mut);margin-top:2px;}
-
 .rwrap{display:none;}
 .rwrap.on{display:block;}
 .rtop{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
@@ -99,7 +90,7 @@ textarea::placeholder{color:var(--mut);font-style:italic;font-size:13px;}
 .hwrap{margin-top:36px;}
 .htitle{font-family:var(--mono);font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
 .htitle::after{content:'';flex:1;height:1px;background:var(--bord);}
-.hi{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--surf);border:1px solid var(--bord);border-radius:6px;cursor:pointer;margin-bottom:6px;transition:all .15s;}
+.hi{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--surf);border:1px solid var(--bord);border-radius:6px;cursor:pointer;margin-bottom:6px;}
 .hi:hover{background:var(--surf2);}
 .hn{font-family:var(--mono);font-size:9px;color:var(--mut);min-width:58px;}
 .hq{font-size:12px;color:var(--mut2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -107,7 +98,6 @@ textarea::placeholder{color:var(--mut);font-style:italic;font-size:13px;}
 .snk{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--surf2);border:1px solid var(--acc2);color:var(--acc2);font-family:var(--mono);font-size:11px;padding:9px 18px;border-radius:6px;opacity:0;transition:all .3s;pointer-events:none;z-index:1000;white-space:nowrap;}
 .snk.on{opacity:1;transform:translateX(-50%) translateY(0);}
 @media(max-width:480px){.wrap{padding:18px 14px 60px;}.title{font-size:22px;}.rbox{padding:16px 12px;}.rbox table{font-size:11px;}.rbox th,.rbox td{padding:5px 7px;}}
-::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--bord);border-radius:2px;}
 </style>
 </head>
 <body>
@@ -118,54 +108,43 @@ textarea::placeholder{color:var(--mut);font-style:italic;font-size:13px;}
 <div class="wrap">
   <div class="eyebrow">// post-visita</div>
   <h1 class="title">Describe el trabajo.<br><span>Obtén tu cotización.</span></h1>
-  <p class="desc">Escribe lo que viste o adjunta fotos de la visita o licitación. La IA lee las imágenes, estima cantidades y genera la cotización con precios de mercado Santiago.</p>
-
+  <p class="desc">Escribe lo que viste o adjunta fotos. La IA analiza las imágenes y genera la cotización con precios de mercado Santiago.</p>
   <div class="cfg">
     <div class="cfg-item"><label>GG %</label><input type="number" id="gg" value="10"></div>
     <div class="cfg-item"><label>Margen %</label><input type="number" id="mg" value="30"></div>
     <div class="cfg-item"><label>IVA %</label><input type="number" id="iv" value="19"></div>
   </div>
-
   <div class="ex-wrap">
-    <div class="ex-lbl">// ejemplos rápidos</div>
+    <div class="ex-lbl">// ejemplos</div>
     <div class="ex-chips">
       <div class="chip" onclick="setEx(this)">Impermeabilización techo 300m²</div>
       <div class="chip" onclick="setEx(this)">Pintura interior 4 habitaciones</div>
       <div class="chip" onclick="setEx(this)">CCTV 8 cámaras Hikvision</div>
       <div class="chip" onclick="setEx(this)">Eléctrico 6 puntos + tablero</div>
-      <div class="chip" onclick="setEx(this)">Desatasco cañería industrial</div>
     </div>
   </div>
-
   <div class="ibox">
     <div class="corner tl"></div>
     <div class="corner br"></div>
-    <textarea id="q" rows="4" placeholder="Describe el trabajo… o adjunta fotos abajo y deja que la IA analice las imágenes. Puedes combinar texto + fotos."></textarea>
+    <textarea id="q" rows="4" placeholder="Describe el trabajo… o adjunta fotos abajo. Puedes combinar texto y fotos."></textarea>
     <div class="ifoot">
       <span class="ihint">Santiago · CLP · 2025-2026</span>
       <button class="btn-go" id="btnGo" onclick="cotizar()">⚡ Cotizar</button>
     </div>
   </div>
-
-  <!-- Zona de imágenes -->
   <div class="img-zone">
     <div class="img-label">// fotos de referencia <span id="imgCountLbl"></span></div>
     <div class="img-drop" id="dropZone">
       <input type="file" id="imgInput" accept="image/*" multiple onchange="handleFiles(this.files)">
       <div class="img-drop-txt">📷 Toca para adjuntar fotos</div>
-      <div class="img-drop-sub">Fotos de la visita, licitación o capturas de pantalla · máx 4 imágenes</div>
+      <div class="img-drop-sub">Fotos de visita, licitación o capturas · máx 4 imágenes</div>
     </div>
     <div class="img-previews" id="previews"></div>
   </div>
-
   <div class="loading" id="ld">
     <div class="spinner"></div>
-    <div>
-      <div class="ltxt" id="ltxt">Analizando imágenes y consultando precios…</div>
-      <div class="lsub">Materiales · MO · GG · Margen · IVA</div>
-    </div>
+    <div><div class="ltxt" id="ltxt">Analizando y consultando precios…</div><div class="lsub">Materiales · MO · GG · Margen · IVA</div></div>
   </div>
-
   <div class="rwrap" id="rw">
     <div class="rtop">
       <div class="rtag">cotización lista</div>
@@ -177,35 +156,27 @@ textarea::placeholder{color:var(--mut);font-style:italic;font-size:13px;}
     </div>
     <div class="rbox" id="rb"></div>
   </div>
-
   <div id="hw" style="display:none">
-    <div class="hwrap">
-      <div class="htitle">historial de sesión</div>
-      <div id="hl"></div>
-    </div>
+    <div class="hwrap"><div class="htitle">historial de sesión</div><div id="hl"></div></div>
   </div>
 </div>
 <div class="snk" id="snk"></div>
-
 <script>
 const hist=[];
 let cN='P-'+new Date().getFullYear()+'-'+(800+Math.floor(Math.random()*200));
-let lastTxt='',lastSh=[];
-let imgFiles=[];
+let lastTxt='',lastSh=[],imgFiles=[];
 
 function setEx(el){document.getElementById('q').value=el.textContent;}
 
-// Manejo de imágenes
 function handleFiles(files){
   const arr=Array.from(files);
-  const remaining=4-imgFiles.length;
-  const toAdd=arr.slice(0,remaining);
-  if(arr.length>remaining) showSnk('Máximo 4 imágenes');
-  toAdd.forEach(f=>{
+  const rem=4-imgFiles.length;
+  arr.slice(0,rem).forEach(f=>{
     if(!f.type.startsWith('image/')){showSnk('Solo imágenes');return;}
     if(f.size>5*1024*1024){showSnk('Imagen muy grande (máx 5MB)');return;}
     imgFiles.push(f);
   });
+  if(arr.length>rem)showSnk('Máximo 4 imágenes');
   renderPreviews();
 }
 
@@ -217,28 +188,23 @@ function renderPreviews(){
     const url=URL.createObjectURL(f);
     const div=document.createElement('div');
     div.className='img-thumb';
-    div.innerHTML=`<img src="${url}"><button class="del" onclick="removeImg(${i})">✕</button>`;
+    div.innerHTML='<img src="'+url+'"><button class="del" onclick="removeImg('+i+')">✕</button>';
     wrap.appendChild(div);
   });
-  lbl.textContent=imgFiles.length>0?`(${imgFiles.length}/4)`:'';
+  lbl.textContent=imgFiles.length>0?'('+imgFiles.length+'/4)':'';
 }
 
 function removeImg(i){imgFiles.splice(i,1);renderPreviews();}
 
-// Drag & drop
 const dz=document.getElementById('dropZone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');handleFiles(e.dataTransfer.files);});
 
-// Convertir imagen a base64
 function fileToBase64(file){
   return new Promise((resolve,reject)=>{
     const r=new FileReader();
-    r.onload=()=>{
-      const b64=r.result.split(',')[1];
-      resolve({data:b64,mimeType:file.type});
-    };
+    r.onload=()=>resolve({data:r.result.split(',')[1],mimeType:file.type});
     r.onerror=reject;
     r.readAsDataURL(file);
   });
@@ -250,42 +216,26 @@ async function cotizar(){
   const gg=parseFloat(document.getElementById('gg').value)||10;
   const mg=parseFloat(document.getElementById('mg').value)||30;
   const iv=parseFloat(document.getElementById('iv').value)||19;
-
   document.getElementById('btnGo').disabled=true;
   document.getElementById('ld').classList.add('on');
   document.getElementById('rw').classList.remove('on');
+  document.getElementById('ltxt').textContent=imgFiles.length>0?'Analizando imágenes y consultando precios…':'Consultando precios de mercado…';
 
-  const hasImages=imgFiles.length>0;
-  document.getElementById('ltxt').textContent=hasImages
-    ?'Analizando imágenes y consultando precios…'
-    :'Consultando precios de mercado…';
-
-  const sys=`Eres experto en cotización de servicios de construcción, mantención y sistemas de seguridad en Chile, especializado en Santiago, Región Metropolitana. Año: ${new Date().getFullYear()}.
-
-Usuario: Orlando, dueño de Multiservicios R&L SpA (impermeabilización, pintura, gasfitería, electricidad, limpieza, redes datos, CCTV, control acceso) y SERPRO INGENIERÍA SpA.
-
-${hasImages?'Se adjuntan imágenes de referencia. Analízalas para identificar el tipo de trabajo, materiales visibles, dimensiones aproximadas y estado de la superficie o instalación. Úsalas para enriquecer la cotización.':''}
-
+  const sys=`Eres experto en cotización de servicios de construcción, mantención y sistemas de seguridad en Chile, especializado en Santiago. Año: ${new Date().getFullYear()}.
+Usuario: Orlando, dueño de Multiservicios R&L SpA y SERPRO INGENIERÍA SpA.
+${imgFiles.length>0?'Se adjuntan imágenes. Analízalas para identificar el trabajo, materiales y estado.':''}
 ESTRUCTURA OBLIGATORIA:
-
 ## COTIZACIÓN ${cN}
-
 **Trabajo:** [descripción]
 **Cantidad:** [unidad]
 **Complejidad:** [Estándar/Media/Alta]
-${hasImages?'**Análisis visual:** [qué identificaste en las imágenes]':''}
-
+${imgFiles.length>0?'**Análisis visual:** [qué identificaste en las imágenes]':''}
 ---
-
 ## DESGLOSE
-
 | Ítem | Descripción | Und | Cant | P.Unit neto | Total neto |
 |------|-------------|-----|------|-------------|------------|
-
 ---
-
 ## RESUMEN
-
 | Concepto | Valor |
 |----------|-------|
 | Subtotal costos directos | $X.XXX |
@@ -295,31 +245,22 @@ ${hasImages?'**Análisis visual:** [qué identificaste en las imágenes]':''}
 | **NETO** | **$X.XXX** |
 | IVA (${iv}%) | $X.XXX |
 | **TOTAL CON IVA** | **$X.XXX** |
-
 **Precio unitario:** $X.XXX / [unidad]
-
 ---
-
 ## SUPUESTOS
-- [condiciones asumidas, alcances, exclusiones]
+- [condiciones asumidas]
 - Validez: 15 días · Santiago ${new Date().getFullYear()}
-
 ---
-
 ## SHEETS_DATA
 [una línea por ítem: DESCRIPCIÓN	CANT	P.UNIT	TOTAL]
-[incluir al final NETO y TOTAL CON IVA]
-
 REGLAS: precios reales mercado chileno. Separar materiales de MO. Números con puntos de miles. Español siempre.`;
 
   try{
-    // Convertir imágenes a base64
     const images=await Promise.all(imgFiles.map(f=>fileToBase64(f)));
-
     const res=await fetch('/api/cotizar',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({system:sys,text:q||'Analiza las imágenes adjuntas y genera la cotización.',images})
+      body:JSON.stringify({system:sys,text:q||'Analiza las imágenes y genera la cotización.',images:images})
     });
     const data=await res.json();
     const txt=data.content?.[0]?.text||'Sin respuesta.';
@@ -328,61 +269,42 @@ REGLAS: precios reales mercado chileno. Separar materiales de MO. Números con p
     document.getElementById('rw').classList.add('on');
     document.getElementById('rb').innerHTML=renderMd(txt);
     const tm=txt.match(/\*\*TOTAL CON IVA\*\*\s*\|\s*\*\*([^*\n]+)\*\*/);
-    addHist(q||'(solo imágenes)',tm?tm[1].trim():'—',txt);
+    addHist(q||'(imágenes)',tm?tm[1].trim():'—',txt);
   }catch(e){
     document.getElementById('ld').classList.remove('on');
     document.getElementById('rw').classList.add('on');
-    document.getElementById('rb').innerHTML=`<div style="color:var(--err)">Error de conexión.<br><small style="color:var(--mut)">${e.message}</small></div>`;
+    document.getElementById('rb').innerHTML='<div style="color:var(--err)">Error: '+e.message+'</div>';
   }
   document.getElementById('btnGo').disabled=false;
 }
 
-function extSh(txt){
-  const m=txt.match(/## SHEETS_DATA\n([\s\S]+?)(?=\n##|$)/);
-  return m?m[1].trim().split('\n').filter(l=>l.trim()):[];
-}
+function extSh(txt){const m=txt.match(/## SHEETS_DATA\n([\s\S]+?)(?=\n##|$)/);return m?m[1].trim().split('\n').filter(l=>l.trim()):[];}
 
 function renderMd(txt){
   txt=txt.replace(/## SHEETS_DATA[\s\S]*$/,'');
   let h=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
-    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
-    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g,'<em>$1</em>')
-    .replace(/^---$/gm,'<hr>')
-    .replace(/^- (.+)$/gm,'<li>$1</li>');
-  h=renderTbl(h);
-  h=h.replace(/(<li>[\s\S]*?<\/li>)/g,'<ul>$1</ul>');
-  h=h.split('\n').map(l=>{
-    if(l.match(/^<(h[23]|ul|li|hr|table|tr)/))return l;
-    if(!l.trim())return '';
-    return '<p>'+l+'</p>';
-  }).join('');
-  return h;
-}
-
-function renderTbl(h){
-  return h.replace(/(\|.+\|\n?)+/g,match=>{
-    const rows=match.trim().split('\n');
-    let t='<table>';
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*]+)\*/g,'<em>$1</em>')
+    .replace(/^---$/gm,'<hr>').replace(/^- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/(\|.+\|\n?)+/g,m=>{
+    const rows=m.trim().split('\n');let t='<table>';
     rows.forEach((r,i)=>{
       if(r.match(/^\|\s*[-:]+/))return;
       const cells=r.split('|').slice(1,-1);
-      if(i===0){t+='<tr>'+cells.map(c=>`<th>${c.trim()}</th>`).join('')+'</tr>';}
-      else{const tot=r.includes('TOTAL')||r.includes('NETO');t+=`<tr${tot?' class="tr"':''}>` +cells.map(c=>`<td>${c.trim()}</td>`).join('')+'</tr>';}
+      if(i===0){t+='<tr>'+cells.map(c=>'<th>'+c.trim()+'</th>').join('')+'</tr>';}
+      else{const tot=r.includes('TOTAL')||r.includes('NETO');t+='<tr'+(tot?' class="tr"':'')+'>'+cells.map(c=>'<td>'+c.trim()+'</td>').join('')+'</tr>';}
     });
     return t+'</table>';
   });
+  h=h.replace(/(<li>[\s\S]*?<\/li>)/g,'<ul>$1</ul>');
+  h=h.split('\n').map(l=>{if(l.match(/^<(h[23]|ul|li|hr|table|tr)/))return l;if(!l.trim())return '';return '<p>'+l+'</p>';}).join('');
+  return h;
 }
 
 async function copTxt(){try{await navigator.clipboard.writeText(lastTxt);showSnk('✓ Texto copiado');}catch{showSnk('No se pudo copiar');}}
 async function copSheets(){if(!lastSh.length){showSnk('Sin datos');return;}try{await navigator.clipboard.writeText(lastSh.join('\n'));showSnk('✓ Listo — pega en Sheets con Ctrl+V');}catch{showSnk('No se pudo copiar');}}
 function nueva(){document.getElementById('rw').classList.remove('on');document.getElementById('q').value='';imgFiles=[];renderPreviews();cN='P-'+new Date().getFullYear()+'-'+(800+Math.floor(Math.random()*200));}
-function addHist(q,total,txt){
-  hist.unshift({q,total,txt,n:cN});if(hist.length>6)hist.pop();
-  document.getElementById('hw').style.display='block';
-  document.getElementById('hl').innerHTML=hist.map((h,i)=>`<div class="hi" onclick="loadH(${i})"><span class="hn">${h.n}</span><span class="hq">${h.q}</span><span class="ht">${h.total}</span></div>`).join('');
-}
+function addHist(q,total,txt){hist.unshift({q,total,txt,n:cN});if(hist.length>6)hist.pop();document.getElementById('hw').style.display='block';document.getElementById('hl').innerHTML=hist.map((h,i)=>'<div class="hi" onclick="loadH('+i+')"><span class="hn">'+h.n+'</span><span class="hq">'+h.q+'</span><span class="ht">'+h.total+'</span></div>').join('');}
 function loadH(i){const h=hist[i];lastTxt=h.txt;lastSh=extSh(h.txt);document.getElementById('rw').classList.add('on');document.getElementById('rb').innerHTML=renderMd(h.txt);window.scrollTo({top:0,behavior:'smooth'});}
 function showSnk(msg){const s=document.getElementById('snk');s.textContent=msg;s.classList.add('on');setTimeout(()=>s.classList.remove('on'),2800);}
 document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))cotizar();});
