@@ -4,18 +4,14 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const API_KEY = process.env.GROQ_API_KEY;
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204);
-    res.end();
-    return;
-  }
+  if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
   if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
     const filePath = path.join(__dirname, 'index.html');
@@ -31,58 +27,78 @@ const server = http.createServer((req, res) => {
     let body = '';
     req.on('data', chunk => body += chunk);
     req.on('end', () => {
-      const payload = JSON.parse(body);
+      try {
+        const payload = JSON.parse(body);
+        const { system, text, images } = payload;
 
-      const groqPayload = {
-        model: 'llama-3.3-70b-versatile',
-        max_tokens: 1500,
-        messages: [
-          { role: 'system', content: payload.system },
-          ...payload.messages
-        ]
-      };
+        // Construir partes del mensaje para Gemini
+        const parts = [];
 
-      const postData = JSON.stringify(groqPayload);
+        // System prompt + texto del usuario
+        parts.push({ text: system + '\n\nTRABAJO A COTIZAR:\n' + text });
 
-      const options = {
-        hostname: 'api.groq.com',
-        path: '/openai/v1/chat/completions',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + API_KEY,
-          'Content-Length': Buffer.byteLength(postData)
+        // Imágenes si las hay
+        if (images && images.length > 0) {
+          images.forEach(img => {
+            parts.push({
+              inline_data: {
+                mime_type: img.mimeType,
+                data: img.data
+              }
+            });
+          });
+          parts.push({ text: 'Analiza las imágenes anteriores junto con la descripción para generar la cotización.' });
         }
-      };
 
-      const apiReq = https.request(options, apiRes => {
-        let data = '';
-        apiRes.on('data', chunk => data += chunk);
-        apiRes.on('end', () => {
-          try {
-            const groqRes = JSON.parse(data);
-            const result = {
-              content: [{
-                type: 'text',
-                text: groqRes.choices?.[0]?.message?.content || 'Sin respuesta.'
-              }]
-            };
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(result));
-          } catch (e) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Error procesando respuesta' }));
+        const geminiPayload = {
+          contents: [{ parts }],
+          generationConfig: {
+            maxOutputTokens: 1500,
+            temperature: 0.3
           }
+        };
+
+        const postData = JSON.stringify(geminiPayload);
+        const apiPath = `/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+
+        const options = {
+          hostname: 'generativelanguage.googleapis.com',
+          path: apiPath,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData)
+          }
+        };
+
+        const apiReq = https.request(options, apiRes => {
+          let data = '';
+          apiRes.on('data', chunk => data += chunk);
+          apiRes.on('end', () => {
+            try {
+              const geminiRes = JSON.parse(data);
+              const text = geminiRes.candidates?.[0]?.content?.parts?.[0]?.text || 'Sin respuesta.';
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ content: [{ type: 'text', text }] }));
+            } catch (e) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Error procesando respuesta de Gemini' }));
+            }
+          });
         });
-      });
 
-      apiReq.on('error', err => {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: err.message }));
-      });
+        apiReq.on('error', err => {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: err.message }));
+        });
 
-      apiReq.write(postData);
-      apiReq.end();
+        apiReq.write(postData);
+        apiReq.end();
+
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Request inválido' }));
+      }
     });
     return;
   }
@@ -92,5 +108,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log('Cotizador MSR&L (Groq) corriendo en puerto ' + PORT);
+  console.log('Cotizador MSR&L (Gemini) corriendo en puerto ' + PORT);
 });
