@@ -4,10 +4,9 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const API_KEY = process.env.ANTHROPIC_API_KEY;
+const API_KEY = process.env.GROQ_API_KEY;
 
 const server = http.createServer((req, res) => {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -18,7 +17,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Servir index.html
   if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
     const filePath = path.join(__dirname, 'index.html');
     fs.readFile(filePath, (err, data) => {
@@ -29,21 +27,31 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Proxy a Anthropic API
   if (req.method === 'POST' && req.url === '/api/cotizar') {
     let body = '';
     req.on('data', chunk => body += chunk);
     req.on('end', () => {
       const payload = JSON.parse(body);
 
+      const groqPayload = {
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 1500,
+        messages: [
+          { role: 'system', content: payload.system },
+          ...payload.messages
+        ]
+      };
+
+      const postData = JSON.stringify(groqPayload);
+
       const options = {
-        hostname: 'api.anthropic.com',
-        path: '/v1/messages',
+        hostname: 'api.groq.com',
+        path: '/openai/v1/chat/completions',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': API_KEY,
-          'anthropic-version': '2023-06-01'
+          'Authorization': 'Bearer ' + API_KEY,
+          'Content-Length': Buffer.byteLength(postData)
         }
       };
 
@@ -51,8 +59,20 @@ const server = http.createServer((req, res) => {
         let data = '';
         apiRes.on('data', chunk => data += chunk);
         apiRes.on('end', () => {
-          res.writeHead(apiRes.statusCode, { 'Content-Type': 'application/json' });
-          res.end(data);
+          try {
+            const groqRes = JSON.parse(data);
+            const result = {
+              content: [{
+                type: 'text',
+                text: groqRes.choices?.[0]?.message?.content || 'Sin respuesta.'
+              }]
+            };
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result));
+          } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Error procesando respuesta' }));
+          }
         });
       });
 
@@ -61,7 +81,7 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ error: err.message }));
       });
 
-      apiReq.write(JSON.stringify(payload));
+      apiReq.write(postData);
       apiReq.end();
     });
     return;
@@ -72,5 +92,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Cotizador MSR&L corriendo en puerto ${PORT}`);
+  console.log('Cotizador MSR&L (Groq) corriendo en puerto ' + PORT);
 });
