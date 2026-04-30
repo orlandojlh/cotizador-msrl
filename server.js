@@ -46,7 +46,7 @@ const server = http.createServer((req, res) => {
         };
 
         const postData = JSON.stringify(geminiPayload);
-        const apiPath = '/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY;
+        const apiPath = '/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY;
 
         const options = {
           hostname: 'generativelanguage.googleapis.com',
