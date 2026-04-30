@@ -31,35 +31,22 @@ const server = http.createServer((req, res) => {
         const payload = JSON.parse(body);
         const { system, text, images } = payload;
 
-        // Construir partes del mensaje para Gemini
         const parts = [];
+        parts.push({ text: system + '\n\nTRABAJO:\n' + (text || 'Ver imágenes adjuntas.') });
 
-        // System prompt + texto del usuario
-        parts.push({ text: system + '\n\nTRABAJO A COTIZAR:\n' + text });
-
-        // Imágenes si las hay
         if (images && images.length > 0) {
           images.forEach(img => {
-            parts.push({
-              inline_data: {
-                mime_type: img.mimeType,
-                data: img.data
-              }
-            });
+            parts.push({ inline_data: { mime_type: img.mimeType, data: img.data } });
           });
-          parts.push({ text: 'Analiza las imágenes anteriores junto con la descripción para generar la cotización.' });
         }
 
         const geminiPayload = {
           contents: [{ parts }],
-          generationConfig: {
-            maxOutputTokens: 1500,
-            temperature: 0.3
-          }
+          generationConfig: { maxOutputTokens: 2000, temperature: 0.2 }
         };
 
         const postData = JSON.stringify(geminiPayload);
-        const apiPath = `/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+        const apiPath = '/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY;
 
         const options = {
           hostname: 'generativelanguage.googleapis.com',
@@ -75,29 +62,35 @@ const server = http.createServer((req, res) => {
           let data = '';
           apiRes.on('data', chunk => data += chunk);
           apiRes.on('end', () => {
+            console.log('Gemini status:', apiRes.statusCode);
+            console.log('Gemini raw:', data.substring(0, 400));
             try {
-              const geminiRes = JSON.parse(data);
-              const text = geminiRes.candidates?.[0]?.content?.parts?.[0]?.text || 'Sin respuesta.';
+              const parsed = JSON.parse(data);
+              const txt = parsed.candidates?.[0]?.content?.parts?.[0]?.text
+                || parsed.error?.message
+                || 'Sin respuesta de Gemini.';
               res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ content: [{ type: 'text', text }] }));
+              res.end(JSON.stringify({ content: [{ type: 'text', text: txt }] }));
             } catch (e) {
-              res.writeHead(500, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: 'Error procesando respuesta de Gemini' }));
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error parseando respuesta: ' + data.substring(0, 200) }] }));
             }
           });
         });
 
         apiReq.on('error', err => {
+          console.error('API error:', err.message);
           res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: err.message }));
+          res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error de red: ' + err.message }] }));
         });
 
         apiReq.write(postData);
         apiReq.end();
 
       } catch (e) {
+        console.error('Parse error:', e.message);
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Request inválido' }));
+        res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error en request: ' + e.message }] }));
       }
     });
     return;
