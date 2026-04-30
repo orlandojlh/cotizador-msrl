@@ -46,11 +46,10 @@ const server = http.createServer((req, res) => {
         };
 
         const postData = JSON.stringify(geminiPayload);
-        const apiPath = '/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY;
 
         const options = {
           hostname: 'generativelanguage.googleapis.com',
-          path: apiPath,
+          path: '/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY,
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -62,35 +61,34 @@ const server = http.createServer((req, res) => {
           let data = '';
           apiRes.on('data', chunk => data += chunk);
           apiRes.on('end', () => {
-            console.log('Gemini status:', apiRes.statusCode);
-            console.log('Gemini raw:', data.substring(0, 400));
+            console.log('Status:', apiRes.statusCode);
+            console.log('Response:', data.substring(0, 300));
             try {
               const parsed = JSON.parse(data);
               const txt = parsed.candidates?.[0]?.content?.parts?.[0]?.text
                 || parsed.error?.message
-                || 'Sin respuesta de Gemini.';
+                || JSON.stringify(parsed).substring(0, 300);
               res.writeHead(200, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ content: [{ type: 'text', text: txt }] }));
             } catch (e) {
               res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error parseando respuesta: ' + data.substring(0, 200) }] }));
+              res.end(JSON.stringify({ content: [{ type: 'text', text: 'Parse error: ' + data.substring(0, 200) }] }));
             }
           });
         });
 
         apiReq.on('error', err => {
-          console.error('API error:', err.message);
+          console.error('Error:', err.message);
           res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error de red: ' + err.message }] }));
+          res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error red: ' + err.message }] }));
         });
 
         apiReq.write(postData);
         apiReq.end();
 
       } catch (e) {
-        console.error('Parse error:', e.message);
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error en request: ' + e.message }] }));
+        res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error request: ' + e.message }] }));
       }
     });
     return;
@@ -101,5 +99,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log('Cotizador MSR&L (Gemini) corriendo en puerto ' + PORT);
+  console.log('Cotizador MSR&L (Gemini 2.0) puerto ' + PORT);
 });
