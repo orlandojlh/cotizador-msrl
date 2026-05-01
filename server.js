@@ -4,18 +4,73 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
-const API_KEY = process.env.DEEPSEEK_API_KEY;
+const GEMINI_KEY = process.env.GEMINI_API_KEY;
+const GROQ_KEY = process.env.GROQ_API_KEY;
+
+function geminiRequest(parts, callback) {
+  const payload = JSON.stringify({
+    contents: [{ parts }],
+    generationConfig: { maxOutputTokens: 2000, temperature: 0.2 }
+  });
+  const options = {
+    hostname: 'generativelanguage.googleapis.com',
+    path: '/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_KEY,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
+  };
+  const req = https.request(options, res => {
+    let data = '';
+    res.on('data', c => data += c);
+    res.on('end', () => {
+      try {
+        const p = JSON.parse(data);
+        if (p.error) return callback(p.error.message, null);
+        const txt = p.candidates?.[0]?.content?.parts?.[0]?.text;
+        callback(null, txt || 'Sin respuesta de Gemini.');
+      } catch(e) { callback('Parse error: ' + data.substring(0,100), null); }
+    });
+  });
+  req.on('error', e => callback(e.message, null));
+  req.write(payload);
+  req.end();
+}
+
+function groqRequest(system, text, callback) {
+  const payload = JSON.stringify({
+    model: 'llama-3.3-70b-versatile',
+    max_tokens: 2000,
+    messages: [{ role: 'system', content: system }, { role: 'user', content: text }]
+  });
+  const options = {
+    hostname: 'api.groq.com',
+    path: '/openai/v1/chat/completions',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY, 'Content-Length': Buffer.byteLength(payload) }
+  };
+  const req = https.request(options, res => {
+    let data = '';
+    res.on('data', c => data += c);
+    res.on('end', () => {
+      try {
+        const p = JSON.parse(data);
+        const txt = p.choices?.[0]?.message?.content;
+        callback(null, txt || 'Sin respuesta de Groq.');
+      } catch(e) { callback('Error Groq', null); }
+    });
+  });
+  req.on('error', e => callback(e.message, null));
+  req.write(payload);
+  req.end();
+}
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
   if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
-    const filePath = path.join(__dirname, 'index.html');
-    fs.readFile(filePath, (err, data) => {
+    fs.readFile(path.join(__dirname, 'index.html'), (err, data) => {
       if (err) { res.writeHead(404); res.end('Not found'); return; }
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(data);
@@ -28,83 +83,50 @@ const server = http.createServer((req, res) => {
     req.on('data', chunk => body += chunk);
     req.on('end', () => {
       try {
-        const payload = JSON.parse(body);
-        const { system, text, images } = payload;
+        const { system, text, images } = JSON.parse(body);
+        const hasImages = images && images.length > 0;
 
-        // DeepSeek soporta visión con imágenes
-        const userContent = [];
-
-        if (text) {
-          userContent.push({ type: 'text', text: text });
-        }
-
-        if (images && images.length > 0) {
-          images.forEach(img => {
-            userContent.push({
-              type: 'image_url',
-              image_url: { url: 'data:' + img.mimeType + ';base64,' + img.data }
-            });
-          });
-          if (!text) userContent.push({ type: 'text', text: 'Analiza las imágenes y genera la cotización.' });
-        }
-
-        const deepseekPayload = {
-          model: 'deepseek-chat',
-          max_tokens: 2000,
-          messages: [
-            { role: 'system', content: system },
-            { role: 'user', content: userContent.length === 1 && userContent[0].type === 'text'
-                ? userContent[0].text
-                : userContent
-            }
-          ]
+        const respond = (txt) => {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ content: [{ type: 'text', text: txt }] }));
         };
 
-        const postData = JSON.stringify(deepseekPayload);
+        if (hasImages) {
+          // Con imágenes: usar Gemini
+          const parts = [{ text: system + '\n\nTRABAJO:\n' + (text || 'Analiza las imágenes.') }];
+          images.forEach(img => parts.push({ inline_data: { mime_type: img.mimeType, data: img.data } }));
 
-        const options = {
-          hostname: 'api.deepseek.com',
-          path: '/chat/completions',
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + API_KEY,
-            'Content-Length': Buffer.byteLength(postData)
-          }
-        };
-
-        const apiReq = https.request(options, apiRes => {
-          let data = '';
-          apiRes.on('data', chunk => data += chunk);
-          apiRes.on('end', () => {
-            console.log('DeepSeek status:', apiRes.statusCode);
-            console.log('Response:', data.substring(0, 200));
-            try {
-              const parsed = JSON.parse(data);
-              const txt = parsed.choices?.[0]?.message?.content
-                || parsed.error?.message
-                || JSON.stringify(parsed).substring(0, 300);
-              res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ content: [{ type: 'text', text: txt }] }));
-            } catch (e) {
-              res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ content: [{ type: 'text', text: 'Parse error: ' + data.substring(0, 200) }] }));
+          geminiRequest(parts, (err, txt) => {
+            if (err && err.includes('quota')) {
+              // Quota excedida: esperar 35s y reintentar
+              console.log('Quota excedida, reintentando en 35s...');
+              setTimeout(() => {
+                geminiRequest(parts, (err2, txt2) => {
+                  if (err2) {
+                    // Fallback: Groq sin imagen
+                    const textFallback = (text || '') + '\n[No se pudo procesar la imagen. Cotiza basándote en la descripción.]';
+                    groqRequest(system, textFallback, (e3, t3) => respond(t3 || 'Error: ' + e3));
+                  } else respond(txt2);
+                });
+              }, 35000);
+            } else if (err) {
+              respond('Error Gemini: ' + err);
+            } else {
+              respond(txt);
             }
           });
-        });
 
-        apiReq.on('error', err => {
-          console.error('Error:', err.message);
-          res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error: ' + err.message }] }));
-        });
-
-        apiReq.write(postData);
-        apiReq.end();
+        } else {
+          // Sin imágenes: usar Groq (más rápido y sin límites)
+          groqRequest(system, text || '', (err, txt) => {
+            if (err) respond('Error: ' + err);
+            else respond(txt);
+          });
+        }
 
       } catch (e) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error request: ' + e.message }] }));
+        res.end(JSON.stringify({ content: [{ type: 'text', text: 'Error: ' + e.message }] }));
       }
     });
     return;
@@ -114,6 +136,4 @@ const server = http.createServer((req, res) => {
   res.end('Not found');
 });
 
-server.listen(PORT, () => {
-  console.log('Cotizador MSR&L (DeepSeek) puerto ' + PORT);
-});
+server.listen(PORT, () => console.log('Cotizador MSR&L (Gemini+Groq) puerto ' + PORT));
